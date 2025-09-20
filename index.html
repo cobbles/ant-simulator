@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ant Colony Simulator</title>
+  <style>
+    body { background: #111; color: #eee; text-align: center; }
+    canvas { background: #222; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>🐜 Ant Colony Simulator</h1>
+  <canvas id="world" width="500" height="500"></canvas>
+
+  <script>
+    const canvas = document.getElementById("world");
+    const ctx = canvas.getContext("2d");
+    const cellSize = 10;
+
+    let ants = [];
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "lime";
+      ants.forEach(a => {
+        ctx.beginPath();
+        ctx.arc(a.x * cellSize, a.y * cellSize, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function connect() {
+      const ws = new WebSocket("ws://" + location.host + "/ws");
+      ws.onmessage = (msg) => {
+        const data = JSON.parse(msg.data);
+        ants = data.ants;
+        draw();
+      };
+    }
+
+    connect();
+  </script>
+</body>
+</html>
+
