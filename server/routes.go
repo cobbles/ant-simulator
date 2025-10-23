@@ -13,14 +13,14 @@ var upgrader = websocket.Upgrader{}
 
 const tickMs = 100
 
-func registerRoutes(world *app.WorldStruct, mux *http.ServeMux) {
+func registerRoutes(world *app.TWorld, mux *http.ServeMux) {
 	mux.HandleFunc("/ws", wsHandler(world))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "index.html")
 	})
 }
 
-func wsHandler(world *app.WorldStruct) http.HandlerFunc {
+func wsHandler(world *app.TWorld) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {

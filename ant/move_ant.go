@@ -11,6 +11,14 @@ type Ant struct {
 }
 
 func MoveAnt(r *rand.Rand, ant *Ant, gridSize int) {
+	// if food within 5 squares move towards it
+    // for i := range food {
+    //     dist := abs(ant.X-food[i].X) + abs(ant.Y-food[i].Y)
+    //     if dist <= 5 && dist < minDist {
+    //         minDist = dist
+    //         target = &food[i]
+    //     }
+    // }
 	moveDir := rand.New(rand.New(rand.NewSource(time.Now().UnixNano())))
 	if (moveDir.Intn(2) == 1) {
 		dx := r.Intn(3) - 1

@@ -10,7 +10,7 @@
 </head>
 <body>
   <h1>🐜 Ant Colony Simulator</h1>
-  <canvas id="world" width="500" height="500"></canvas>
+  <canvas id="world" width="750" height="750"></canvas>
 
   <script>
     const canvas = document.getElementById("world");
@@ -21,10 +21,25 @@
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "lime";
+
+      // Nest
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(nest.x * cellSize, nest.y * cellSize, nest.foodCount, 0, Math.PI * 2);
+      ctx.fill();
+
+
       ants.forEach(a => {
+        ctx.fillStyle = "lime";
         ctx.beginPath();
         ctx.arc(a.x * cellSize, a.y * cellSize, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      foods.forEach(food => {
+        ctx.fillStyle = "blue";
+        ctx.beginPath();
+        ctx.arc(food.x * cellSize, food.y * cellSize, 3, 0, Math.PI * 2);
         ctx.fill();
       });
     }
@@ -33,7 +48,9 @@
       const ws = new WebSocket("ws://" + location.host + "/ws");
       ws.onmessage = (msg) => {
         const data = JSON.parse(msg.data);
+        nest = data.nest
         ants = data.ants;
+        foods = data.foods;
         draw();
       };
     }
