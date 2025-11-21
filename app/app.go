@@ -72,27 +72,42 @@ func nearFood(ant *ant.Ant, food *food.TFood) bool {
 }
 
 func MoveAntToFood(ant *ant.Ant, food *food.TFood) {
+	nextX := ant.X
+	nextY := ant.Y
+
 	if ant.X < food.X {
-		ant.X++
+		nextX++
 	} else if ant.X > food.X {
-		ant.X--
+		nextX--
 	}
 
 	if ant.Y < food.Y {
-		ant.Y++
+		nextY++
 	} else if ant.Y > food.Y {
-		ant.Y--
+		nextY--
 	}
+
+	ant.X, ant.Y = applyBounce(nextX, nextY)
+}
+
+func applyBounce(nextX, nextY int) (int, int) {
+	// Bounce off walls - if next position is outside bounds, move in opposite direction
+	if nextX < 0 {
+		nextX = -nextX // Bounce right
+	} else if nextX >= gridSize {
+		nextX = 2*gridSize - 2 - nextX // Bounce left
+	}
+
+	if nextY < 0 {
+		nextY = -nextY // Bounce down
+	} else if nextY >= gridSize {
+		nextY = 2*gridSize - 2 - nextY // Bounce up
+	}
+
+	return nextX, nextY
 }
 
 func MoveAnt(ant *ant.Ant) {
 	nextX, nextY := ant.Move()
-
-	if nextX > 0 && nextX <= gridSize {
-		ant.X = nextX
-	}
-
-	if nextY > 0 && nextY <= gridSize {
-		ant.Y = nextY
-	}
+	ant.X, ant.Y = applyBounce(nextX, nextY)
 }
