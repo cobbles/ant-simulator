@@ -1,1 +1,38 @@
-coverage.out
+# Go binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build output
+*.test
+*.out
+
+# Go build cache
+/go-build/
+/bin/
+/dist/
+/build/
+
+# Air temporary build directory
+tmp/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.*
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*~
+*.iml
+
+# OS junk
+.DS_Store
+Thumbs.db
+

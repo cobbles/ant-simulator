@@ -4,30 +4,53 @@
   <meta charset="UTF-8">
   <title>Ant Colony Simulator</title>
   <style>
-    body { background: #111; color: #eee; text-align: center; }
+    body { background: #111; color: #eee; text-align: center; font-family: Arial, sans-serif; }
     canvas { background: #222; margin-top: 20px; }
+    .status { 
+      margin: 10px 0; 
+      padding: 8px 16px; 
+      border-radius: 4px; 
+      display: inline-block;
+      font-weight: bold;
+    }
+    .status.connected { background: #2d5a2d; color: #90ee90; }
+    .status.disconnected { background: #5a2d2d; color: #ff9090; }
+    .status.reconnecting { background: #5a5a2d; color: #ffff90; }
   </style>
 </head>
 <body>
   <h1>🐜 Ant Colony Simulator</h1>
+  <div id="status" class="status disconnected">Disconnected</div>
   <canvas id="world" width="750" height="750"></canvas>
 
   <script>
     const canvas = document.getElementById("world");
     const ctx = canvas.getContext("2d");
+    const statusEl = document.getElementById("status");
     const cellSize = 10;
 
     let ants = [];
+    let ws = null;
+    let reconnectTimeout = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 10;
+    const baseReconnectDelay = 1000; // 1 second
+
+    function updateStatus(status, message) {
+      statusEl.className = `status ${status}`;
+      statusEl.textContent = message;
+    }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Nest
-      ctx.fillStyle = "red";
-      ctx.beginPath();
-      ctx.arc(nest.x * cellSize, nest.y * cellSize, nest.foodCount, 0, Math.PI * 2);
-      ctx.fill();
-
+      if (nest) {
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.arc(nest.x * cellSize, nest.y * cellSize, nest.foodCount, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       ants.forEach(a => {
         ctx.fillStyle = "lime";
@@ -44,18 +67,86 @@
       });
     }
 
-    function connect() {
-      const ws = new WebSocket("ws://" + location.host + "/ws");
-      ws.onmessage = (msg) => {
-        const data = JSON.parse(msg.data);
-        nest = data.nest
-        ants = data.ants;
-        foods = data.foods;
-        draw();
-      };
+    function getReconnectDelay(attempt) {
+      // Exponential backoff with jitter
+      const delay = Math.min(baseReconnectDelay * Math.pow(2, attempt), 30000);
+      return delay + Math.random() * 1000; // Add jitter
     }
 
+    function scheduleReconnect() {
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        updateStatus("disconnected", "Connection failed - refresh page");
+        return;
+      }
+
+      const delay = getReconnectDelay(reconnectAttempts);
+      updateStatus("reconnecting", `Reconnecting... (${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+      
+      reconnectTimeout = setTimeout(() => {
+        reconnectAttempts++;
+        connect();
+      }, delay);
+    }
+
+    function connect() {
+      if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
+        return;
+      }
+
+      try {
+        ws = new WebSocket("ws://" + location.host + "/ws");
+        
+        ws.onopen = () => {
+          updateStatus("connected", "Connected");
+          reconnectAttempts = 0;
+          if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+            reconnectTimeout = null;
+          }
+        };
+
+        ws.onmessage = (msg) => {
+          try {
+            const data = JSON.parse(msg.data);
+            nest = data.nest;
+            ants = data.ants;
+            foods = data.foods;
+            draw();
+          } catch (e) {
+            console.error("Error parsing message:", e);
+          }
+        };
+
+        ws.onclose = (event) => {
+          updateStatus("disconnected", "Disconnected");
+          if (!event.wasClean) {
+            scheduleReconnect();
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error("WebSocket error:", error);
+          updateStatus("disconnected", "Connection error");
+        };
+
+      } catch (error) {
+        console.error("Failed to create WebSocket:", error);
+        scheduleReconnect();
+      }
+    }
+
+    // Start connection
     connect();
+
+    // Cleanup on page unload
+    window.addEventListener("beforeunload", () => {
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      if (ws) {
+        ws.close();
+      }
+    });
   </script>
 </body>
 </html>
