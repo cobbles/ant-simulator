@@ -90,16 +90,13 @@ func worldBroadcaster(world *app.TWorld) {
 	ticker := time.NewTicker(tickMs * time.Millisecond)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			data, err := json.Marshal(world)
-			if err != nil {
-				log.Printf("Error marshaling world: %v", err)
-				continue
-			}
-			wsHub.broadcast <- data
+	for range ticker.C {
+		data, err := json.Marshal(world)
+		if err != nil {
+			log.Printf("Error marshaling world: %v", err)
+			continue
 		}
+		wsHub.broadcast <- data
 	}
 }
 
