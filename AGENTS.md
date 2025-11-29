@@ -30,6 +30,7 @@ The project is structured into several packages:
 
 -   The code follows standard Go naming conventions (e.g., `PascalCase` for exported identifiers).
 -   Structs intended for JSON serialization are prefixed with `T` in some cases (e.g., `TWorld`, `TNest`, `TFood`).
+-   DO NOT put in unnessary comments
 
 ## Testing Approach
 
@@ -45,6 +46,5 @@ The project is structured into several packages:
 ## Important Gotchas & Patterns
 
 -   **Global World State**: The simulation state is stored in a single global variable `app.World`. This is a critical component and any modifications to it should be done with care, considering potential race conditions.
--   **Broken Tests**: The tests in `ant/ant_test.go` are currently broken. They attempt to call a `MoveAnt` function that is defined in the `app` package, which creates a dependency issue. This indicates that the tests have not been maintained after recent refactoring. Any work on the ant movement logic should include fixing these tests.
 -   **Simulation Loop**: The main simulation logic runs in a separate goroutine started in `app/Start()`.
 -   **Dependencies**: The project uses `go.mod` for dependency management.

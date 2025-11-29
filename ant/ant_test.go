@@ -41,20 +41,47 @@ func TestAntMove(t *testing.T) {
 }
 
 func TestAntMoveMultipleTimes(t *testing.T) {
-	ant := NewAnt(0, 0)
-
-	// Test that ant can move multiple times
-	moved := false
-	for i := 0; i < 100; i++ {
-		newX, newY := ant.Move()
-		if newX != 0 || newY != 0 {
-			moved = true
-			break
-		}
+	tests := []struct {
+		name       string
+		startX     int
+		startY     int
+		attempts   int
+		shouldMove bool
+	}{
+		{
+			name:       "ant should move from origin",
+			startX:     0,
+			startY:     0,
+			attempts:   100,
+			shouldMove: true,
+		},
+		{
+			name:       "ant should move from center",
+			startX:     5,
+			startY:     5,
+			attempts:   50,
+			shouldMove: true,
+		},
 	}
 
-	if !moved {
-		t.Error("Ant never moved from starting position after 100 attempts")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ant := NewAnt(tt.startX, tt.startY)
+
+			var moved bool
+			for i := 0; i < tt.attempts; i++ {
+				newX, newY := ant.Move()
+				if newX != tt.startX || newY != tt.startY {
+					moved = true
+					break
+				}
+			}
+
+			if tt.shouldMove && !moved {
+				t.Errorf("Expected ant to move after %d attempts from (%d,%d), but it didn't",
+					tt.attempts, tt.startX, tt.startY)
+			}
+		})
 	}
 }
 

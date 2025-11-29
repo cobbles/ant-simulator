@@ -36,3 +36,7 @@ tmp/
 .DS_Store
 Thumbs.db
 
+# AI
+WORK.md
+PLAN.md
+RESEARCH.md
